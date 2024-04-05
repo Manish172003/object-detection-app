@@ -22,7 +22,7 @@ function App() {
         const viewport = page.getViewport({ scale: 1.0 });
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
-        canvas.height = viewport.height;
+        canvas.height = viewport.height / 4; // Height reduced to 1/4
         canvas.width = viewport.width;
 
         await page.render({
@@ -30,18 +30,20 @@ function App() {
           viewport: viewport,
           backgroundTask: false, // Disable background rendering for faster processing
         }).promise;
+
         const imageData = canvas.toDataURL("image/jpeg");
         const image = new Image();
         image.src = imageData;
 
         await tf.ready(); // Ensure TensorFlow is ready
         const model = await cocoSsd.load();
+
         const predictions = await model.detect(image);
 
         const person = predictions.find(
           (prediction) => prediction.class === "person"
         );
-        if (person && person.score > 0.75) {
+        if (person && person.score > 0.5) {
           personDetected = true;
           break;
         }
@@ -57,9 +59,9 @@ function App() {
       <h1>Person Detection in PDF</h1>
       <input type="file" accept=".pdf" onChange={handleFileChange} />
       {personDetected ? (
-        <p>Person detected with confidence greater than 75%!</p>
+        <p>Person detected with confidence greater than 50%</p>
       ) : (
-        <p>No person detected with confidence greater than 75%.</p>
+        <p>No person detected with confidence greater than 50%.</p>
       )}
     </div>
   );
